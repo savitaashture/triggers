@@ -13,7 +13,7 @@ REGISTRY_RELEASE_URL=quay.io/openshift-pipeline/tektoncd-triggers
 
 # Install core images
 install: installuidwrapper
-	go install $(CORE_IMAGES) $(CORE_IMAGES_WITH_GIT)
+	go install $(CORE_IMAGES)
 .PHONY: install
 
 # Run E2E tests on OpenShift
