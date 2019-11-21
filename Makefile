@@ -2,7 +2,7 @@
 
 CGO_ENABLED=0
 GOOS=linux
-CORE_IMAGES=./cmd/controller ./cmd/eventlistenersink ./cmd/gh-validate ./cmd/webhook
+CORE_IMAGES=./cmd/controller ./cmd/eventlistenersink ./cmd/webhook
 
 ##
 # You need to provide a RELEASE_VERSION when using targets like `push-image`, you can do it directly
@@ -47,7 +47,7 @@ check-images:
 
 # Generate Dockerfiles used by ci-operator. The files need to be committed manually.
 generate-dockerfiles:
-	./openshift/ci-operator/generate-dockerfiles.sh openshift/ci-operator/Dockerfile.in openshift/ci-operator/knative-images $(CORE_IMAGES)
+	./openshift/ci-operator/generate-dockerfiles.sh openshift/ci-operator/Dockerfile.in openshift/ci-operator/tekton-images $(CORE_IMAGES)
 .PHONY: generate-dockerfiles
 
 # NOTE(chmou): Install uidwraper for launching some binaries with fixed uid
