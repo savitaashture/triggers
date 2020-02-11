@@ -7,6 +7,7 @@ fixes needed only for the OpenShift side of things.
 ## List of releases
 
 - [release-v0.1.0](https://github.com/openshift/tektoncd-triggers/tree/release-v0.1.0)
+- [release-v0.2.1](https://github.com/openshift/tektoncd-triggers/tree/release-v0.2.1)
 
 ## How this repository works ?
 
