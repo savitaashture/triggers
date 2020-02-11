@@ -12,7 +12,7 @@ readonly TEST_NAMESPACE=tekton-triggers-tests
 readonly TEKTON_TRIGGERS_NAMESPACE=tekton-pipelines
 readonly KO_DOCKER_REPO=image-registry.openshift-image-registry.svc:5000/tektoncd-triggers
 # Where the CRD will install the triggers
-readonly TEKTON_NAMESPACE=tekton-triggers
+readonly TEKTON_NAMESPACE=tekton-pipelines
 # Variable usually set by openshift CI but generating one if not present when running it locally
 readonly OPENSHIFT_BUILD_NAMESPACE=${OPENSHIFT_BUILD_NAMESPACE:-tektoncd-build-$$}
 # Yaml test skipped due of not being able to run on openshift CI, usually becaus
