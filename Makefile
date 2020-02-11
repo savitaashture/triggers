@@ -17,9 +17,8 @@ install: installuidwrapper
 .PHONY: install
 
 # Run E2E tests on OpenShift
-# ./openshift/e2e-tests-openshift.sh
 test-e2e: check-images
-	echo "Dummy Test"
+	./openshift/e2e-tests-openshift.sh
 .PHONY: test-e2e
 
 # Make sure we have all images in the makefile variable or that would be a new
