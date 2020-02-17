@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 set -e
-source $(dirname $0)/../vendor/github.com/tektoncd/plumbing/scripts/e2e-tests.sh
 source $(dirname $0)/resolve-yamls.sh
+source $(dirname $0)/../test/e2e-common.sh
 
 set -x
 
@@ -19,6 +19,8 @@ readonly OPENSHIFT_BUILD_NAMESPACE=${OPENSHIFT_BUILD_NAMESPACE:-tektoncd-build-$
 # of rights.
 # test-git-volume: `"gitRepo": gitRepo volumes are not allowed to be used]'
 declare -ar SKIP_YAML_TEST=(test-git-volume)
+
+install_pipeline_crd
 
 function install_tekton_triggers() {
   header "Installing Tekton Triggers"
