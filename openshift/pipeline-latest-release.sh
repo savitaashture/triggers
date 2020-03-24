@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 MAX_SHIFT=2
-STABLE_RELEASE_URL='https://raw.githubusercontent.com/openshift/tektoncd-pipeline/release-${version}/openshift/release/tektoncd-pipeline-${version}.yaml'
+STABLE_RELEASE_URL='https://raw.githubusercontent.com/openshift/tektoncd-pipeline/${version}/openshift/release/tektoncd-pipeline-${version}.yaml'
 
 function get_version {
     local shift=${1} # 0 is latest, increase is the version before etc...
