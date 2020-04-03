@@ -8,7 +8,7 @@ source $(dirname $0)/pipeline-latest-release.sh
 set -x
 
 readonly API_SERVER=$(oc config view --minify | grep server | awk -F'//' '{print $2}' | awk -F':' '{print $1}')
-readonly OPENSHIFT_REGISTRY="${OPENSHIFT_REGISTRY:-"registry.svc.ci.openshift.org"}"
+readonly OPENSHIFT_REGISTRY_PREFIX="${OPENSHIFT_REGISTRY_PREFIX:-${IMAGE_FORMAT//:\$\{component\}/}}"
 readonly TEST_NAMESPACE=tekton-triggers-tests
 readonly TEKTON_TRIGGERS_NAMESPACE=tekton-pipelines
 readonly KO_DOCKER_REPO=image-registry.openshift-image-registry.svc:5000/tektoncd-triggers
@@ -54,7 +54,7 @@ function install_tekton_triggers() {
 }
 
 function create_triggers() {
-  resolve_resources config/ tekton-triggers-resolved.yaml "nothing" $OPENSHIFT_REGISTRY/$OPENSHIFT_BUILD_NAMESPACE/stable
+  resolve_resources config/ tekton-triggers-resolved.yaml "nothing" $OPENSHIFT_REGISTRY_PREFIX
   oc apply -f tekton-triggers-resolved.yaml
 }
 
