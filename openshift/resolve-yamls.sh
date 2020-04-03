@@ -25,7 +25,7 @@ function resolve_resources() {
     if [[ -n ${image_tag} ]];then
         # This is a release format the output would look like this :
         # quay.io/openshift-pipeline/tektoncd-triggers-controller:$image_tag
-        sed -e "s%\(.* image:\)\(github.com\)\(.*\/\)\(.*\)%\1 ${registry_prefix}-\4:${image_tag}%" $yaml \
+        sed -e "s,ko://,,g" -e "s%\(.* image:\)\(github.com\)\(.*\/\)\(.*\)%\1 ${registry_prefix}-\4:${image_tag}%" $yaml \
             -r -e "s,github.com/tektoncd/triggers/cmd/${image_regexp},${registry_prefix}-\1:${image_tag},g" \
             >>$resolved_file_name
      else
@@ -34,7 +34,7 @@ function resolve_resources() {
         # internal-registry:5000/usernamespace:tektoncd-triggers-controller
         #
         # note: test image are images only used for testing not for releases
-        sed -e 's%\(.* image:\)\(github.com\)\(.*\/\)\(test\/\)\(.*\)%\1\2 \3\4test-\5%' $yaml \
+        sed -e "s,ko://,,g" -e 's%\(.* image:\)\(github.com\)\(.*\/\)\(test\/\)\(.*\)%\1\2 \3\4test-\5%' $yaml \
             -e "s%\(.* image:\)\(github.com\)\(.*\/\)\(.*\)%\1 ""$registry_prefix"'\:tektoncd-triggers-\4%'  \
             -re "s,github.com/tektoncd/triggers/cmd/${image_regexp},${registry_prefix}:tektoncd-triggers-\1,g" \
             >>$resolved_file_name
