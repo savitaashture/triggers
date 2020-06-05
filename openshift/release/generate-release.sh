@@ -13,6 +13,9 @@ else
     tag=$release
 fi
 
-sed -i -e "s/\(triggers.tekton.dev\/release\): \"devel\"/\1: \"${release}\"/g" -e "s/\(version\): \"devel\"/\1: \"${release}\"/g"  $output_file
-
 resolve_resources config/ $output_file noignore $image_prefix $tag
+
+# Update value of "devel" in labels to $tag
+if [[ -n ${tag} ]]; then
+    sed -i -r "s/\"?devel\"?$/${tag}/g" $output_file
+fi
