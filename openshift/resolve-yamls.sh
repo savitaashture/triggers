@@ -39,6 +39,10 @@ function resolve_resources() {
             -re "s,github.com/tektoncd/triggers/cmd/${image_regexp},${registry_prefix}:tektoncd-triggers-\1,g" \
             >>$resolved_file_name
     fi
+
+    # Remove runAsUser: id, openshift takes care of randoming them and we dont need a fixed uid for that
+	  sed -i '/runAsUser: [0-9]*/d' ${resolved_file_name}
+
     echo >>$resolved_file_name
   done
 }
