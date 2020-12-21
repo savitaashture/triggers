@@ -1,0 +1,28 @@
+From 9c533d155a1660d44f68d0cfa240ee1d4c1ce74a Mon Sep 17 00:00:00 2001
+From: Piyush Garg <piyushgarg001@gmail.com>
+Date: Mon, 21 Dec 2020 13:26:13 +0530
+Subject: [PATCH] Change eventlistener flag default value to false
+
+Changing this default value to false will not set the
+securitycontext on deployment as 65532 userid does
+not work on openshift
+---
+ pkg/reconciler/v1alpha1/eventlistener/eventlistener.go | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/pkg/reconciler/v1alpha1/eventlistener/eventlistener.go b/pkg/reconciler/v1alpha1/eventlistener/eventlistener.go
+index fd9921e6..b735cb6d 100644
+--- a/pkg/reconciler/v1alpha1/eventlistener/eventlistener.go
++++ b/pkg/reconciler/v1alpha1/eventlistener/eventlistener.go
+@@ -68,7 +68,7 @@ var (
+ 	ElPort = flag.Int("el-port", 8080,
+ 		"The container port for the EventListener to listen on.")
+ 	// ELSetSecurityContext defines if the security context is set.
+-	ELSetSecurityContext = flag.Bool("el-security-context", true,
++	ELSetSecurityContext = flag.Bool("el-security-context", false,
+ 		"Add a security context to the event listener deployment.")
+ 	// ELReadTimeOut defines the read timeout for EventListener Server
+ 	ELReadTimeOut = flag.Int64("el-readtimeout", 5,
+-- 
+2.26.2
+
