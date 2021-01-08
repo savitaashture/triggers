@@ -11,10 +11,10 @@ function resolve_resources() {
   # This would get only one set of truth from the Makefile for the image lists
   #
   # % grep "^CORE_IMAGES" Makefile
-  # CORE_IMAGES=./cmd/controller ./cmd/webhook ./cmd/eventlistener
+  # CORE_IMAGES=./cmd/controller ./cmd/webhook ./cmd/eventlistenersink ./cmd/interceptors
   # to:
   #  % grep '^CORE_IMAGES' Makefile|sed -e 's/.*=//' -e 's,./cmd/,,g'|tr -d '\n'|sed -e 's/ /|/g' -e 's/^/(/' -e 's/$/)\n/'
-  # (controller|webhook|eventlistener)
+  # (controller|webhook|eventlistenersink/interceptors)
   local image_regexp=$(grep '^CORE_IMAGES' $(git rev-parse --show-toplevel)/Makefile| \
                            sed -e 's/.*=//' -e 's,./cmd/,,g'|tr '\n' ' '| \
                            sed -e 's/ /|/g' -e 's/^/(/' -e 's/|$/)\n/')
@@ -40,8 +40,10 @@ function resolve_resources() {
             >>$resolved_file_name
     fi
 
-    # Remove runAsUser: id, openshift takes care of randoming them and we dont need a fixed uid for that
+    # Remove runAsUser: id and runAsGroup: id, openshift takes care of randoming them and we dont need a fixed uid for that
 	  sed -i '/runAsUser: [0-9]*/d' ${resolved_file_name}
+
+	  sed -i '/runAsGroup: [0-9]*/d' ${resolved_file_name}
 
     echo >>$resolved_file_name
   done
