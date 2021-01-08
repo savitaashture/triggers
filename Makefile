@@ -2,7 +2,7 @@
 
 CGO_ENABLED=0
 GOOS=linux
-CORE_IMAGES=./cmd/controller ./cmd/eventlistenersink ./cmd/webhook
+CORE_IMAGES=./cmd/controller ./cmd/eventlistenersink ./cmd/webhook ./cmd/interceptors
 
 ##
 # You need to provide a RELEASE_VERSION when using targets like `push-image`, you can do it directly
