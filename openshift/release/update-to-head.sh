@@ -8,9 +8,9 @@ REPO_NAME=`basename $(git rev-parse --show-toplevel)`
 [[ ${REPO_NAME} != tektoncd-* ]] && REPO_NAME=tektoncd-${REPO_NAME}
 TODAY=`date "+%Y%m%d"`
 
-# Reset release-next to upstream/master.
-git fetch upstream master
-git checkout upstream/master --no-track -B release-next
+# Reset release-next to upstream/main.
+git fetch upstream main
+git checkout upstream/main --no-track -B release-next
 
 # Update openshift's master and take all needed files from there.
 git fetch openshift master
