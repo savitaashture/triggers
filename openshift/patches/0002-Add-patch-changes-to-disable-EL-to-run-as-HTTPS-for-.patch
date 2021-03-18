@@ -1,0 +1,46 @@
+From 4d41475e287507ab142210283fbbc41e2b61d420 Mon Sep 17 00:00:00 2001
+From: savitaashture <sashture@redhat.com>
+Date: Thu, 18 Mar 2021 22:05:35 +0530
+Subject: [PATCH] Add patch changes to disable EL to run as HTTPS for e2e tests
+
+---
+ test/init_test.go | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
+diff --git a/test/init_test.go b/test/init_test.go
+index 13f6a19d..b1bfc3cc 100644
+--- a/test/init_test.go
++++ b/test/init_test.go
+@@ -55,6 +55,7 @@ func setup(t *testing.T) (*clients, string) {
+ 
+ 	c := newClients(t, knativetest.Flags.Kubeconfig, knativetest.Flags.Cluster)
+ 	createNamespace(t, namespace, c.KubeClient)
++	labelNamespace(t, namespace, c.KubeClient)
+ 	verifyDefaultServiceAccountExists(t, namespace, c.KubeClient)
+ 	return c, namespace
+ }
+@@ -237,3 +238,20 @@ func getCRDYaml(cs *clients, ns string) ([]byte, error) {
+ 
+ 	return output, nil
+ }
++
++func labelNamespace(t *testing.T, namespace string, kubeClient kubernetes.Interface) {
++	t.Helper()
++	t.Logf("Label namespace %s", namespace)
++	ns, err := kubeClient.CoreV1().Namespaces().Get(context.Background(), namespace, metav1.GetOptions{})
++	if err != nil {
++		t.Fatalf("Failed to get namespace %s for tests: %s", namespace, err)
++	}
++	if _, ok := ns.Labels["operator.tekton.dev/disable-annotation"]; !ok {
++		ns.Labels = map[string]string{
++			"operator.tekton.dev/disable-annotation": "disabled",
++		}
++	}
++	if _, err := kubeClient.CoreV1().Namespaces().Update(context.Background(), ns, metav1.UpdateOptions{}); err != nil {
++		t.Fatalf("Failed to update namespace %s for tests: %s", namespace, err)
++	}
++}
+\ No newline at end of file
+-- 
+2.20.1
+
