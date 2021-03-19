@@ -20,7 +20,7 @@ function resolve_resources() {
                            sed -e 's/ /|/g' -e 's/^/(/' -e 's/|$/)\n/')
 
   >$resolved_file_name
-  for yaml in $(find $dir -name "*.yaml" | grep -vE $ignores); do
+  for yaml in $(find $dir $dir/interceptors/ -name "*.yaml" | grep -vE $ignores); do
     echo "---" >>$resolved_file_name
     if [[ -n ${image_tag} ]];then
         # This is a release format the output would look like this :
