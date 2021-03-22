@@ -56,6 +56,8 @@ function install_tekton_triggers() {
 function create_triggers() {
   resolve_resources config/ tekton-triggers-resolved.yaml "nothing" $OPENSHIFT_REGISTRY_PREFIX
   oc apply -f tekton-triggers-resolved.yaml
+  resolve_resources config/interceptors tekton-triggers-resolved-interceptors.yaml "nothing" $OPENSHIFT_REGISTRY_PREFIX
+  oc apply -f tekton-triggers-resolved-interceptors.yaml
 }
 
 function create_test_namespace() {
