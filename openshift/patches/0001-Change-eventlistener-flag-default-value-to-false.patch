@@ -1,0 +1,28 @@
+From 5d676bc8a8f5d5c01348559206751ac3839fff2c Mon Sep 17 00:00:00 2001
+From: Piyush Garg <piyushgarg001@gmail.com>
+Date: Thu, 7 Jan 2021 11:27:03 +0530
+Subject: [PATCH] Change eventlistener flag default value to false
+
+Changing this default value to false will not set the
+securitycontext on deployment as 65532 userid does
+not work on openshift
+---
+ pkg/reconciler/v1alpha1/eventlistener/config.go | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/pkg/reconciler/v1alpha1/eventlistener/config.go b/pkg/reconciler/v1alpha1/eventlistener/config.go
+index 469e6b40..f6e54182 100644
+--- a/pkg/reconciler/v1alpha1/eventlistener/config.go
++++ b/pkg/reconciler/v1alpha1/eventlistener/config.go
+@@ -22,7 +22,7 @@ var (
+ 	// DefaultPort is the port used by default.
+ 	DefaultPort = 8080
+ 	// DefaultSetSecurityContext is the SetSecurityContext value used by default.
+-	DefaultSetSecurityContext = true
++	DefaultSetSecurityContext = false
+ 	// DefaultReadTimeout is the ReadTimeout used by default.
+ 	DefaultReadTimeout = int64(5)
+ 	// DefaultWriteTimeout is the WriteTimeout used by default.
+-- 
+2.26.2
+
