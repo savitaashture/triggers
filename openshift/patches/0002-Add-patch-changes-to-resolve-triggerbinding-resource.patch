@@ -1,0 +1,88 @@
+From 703646cf7a51cdc29b27996519acb8378042b016 Mon Sep 17 00:00:00 2001
+From: savitaashture <sashture@redhat.com>
+Date: Wed, 31 Mar 2021 12:40:30 +0530
+Subject: [PATCH] Add patch changes to resolve triggerbinding resource
+
+---
+ cmd/eventlistenersink/main.go | 42 +++++++++++++++++++++++------------
+ 1 file changed, 28 insertions(+), 14 deletions(-)
+
+diff --git a/cmd/eventlistenersink/main.go b/cmd/eventlistenersink/main.go
+index d3d3fcac..43904407 100644
+--- a/cmd/eventlistenersink/main.go
++++ b/cmd/eventlistenersink/main.go
+@@ -44,6 +44,12 @@ const (
+ 	ConfigName = "config-logging-triggers"
+ )
+ 
++var (
++	// CacheSyncTimeout is the amount of the time we will wait for the informer cache to sync
++	// before timing out
++	cacheSyncTimeout = 1 * time.Minute
++)
++
+ func main() {
+ 	// set up signals so we handle the first shutdown signal gracefully
+ 	ctx := signals.NewContext()
+@@ -85,6 +91,7 @@ func main() {
+ 		logger.Fatal(err)
+ 	}
+ 
++	// Create a sharedInformer factory so that we can cache API server calls
+ 	factory := externalversions.NewSharedInformerFactoryWithOptions(sinkClients.TriggersClient,
+ 		30*time.Second, externalversions.WithNamespace(sinkArgs.ElNamespace))
+ 	if sinkArgs.IsMultiNS {
+@@ -92,22 +99,18 @@ func main() {
+ 			30*time.Second)
+ 	}
+ 
+-	go func(ctx context.Context) {
+-		factory.Start(ctx.Done())
+-		<-ctx.Done()
+-	}(ctx)
+-
+ 	// Create EventListener Sink
+ 	r := sink.Sink{
+-		KubeClientSet:               kubeClient,
+-		DiscoveryClient:             sinkClients.DiscoveryClient,
+-		DynamicClient:               dynamicCS,
+-		TriggersClient:              sinkClients.TriggersClient,
+-		HTTPClient:                  http.DefaultClient,
+-		EventListenerName:           sinkArgs.ElName,
+-		EventListenerNamespace:      sinkArgs.ElNamespace,
+-		Logger:                      logger,
+-		Auth:                        sink.DefaultAuthOverride{},
++		KubeClientSet:          kubeClient,
++		DiscoveryClient:        sinkClients.DiscoveryClient,
++		DynamicClient:          dynamicCS,
++		TriggersClient:         sinkClients.TriggersClient,
++		HTTPClient:             http.DefaultClient,
++		EventListenerName:      sinkArgs.ElName,
++		EventListenerNamespace: sinkArgs.ElNamespace,
++		Logger:                 logger,
++		Auth:                   sink.DefaultAuthOverride{},
++		// Register all the listers we'll need
+ 		EventListenerLister:         factory.Triggers().V1alpha1().EventListeners().Lister(),
+ 		TriggerLister:               factory.Triggers().V1alpha1().Triggers().Lister(),
+ 		TriggerBindingLister:        factory.Triggers().V1alpha1().TriggerBindings().Lister(),
+@@ -115,6 +118,17 @@ func main() {
+ 		TriggerTemplateLister:       factory.Triggers().V1alpha1().TriggerTemplates().Lister(),
+ 	}
+ 
++	// Start and sync the informers before we start taking traffic
++	withTimeout, cancel := context.WithTimeout(ctx, cacheSyncTimeout)
++	defer cancel()
++	factory.Start(withTimeout.Done())
++	res := factory.WaitForCacheSync(withTimeout.Done())
++	for r, hasSynced := range res {
++		if !hasSynced {
++			logger.Fatalf("failed to sync informer for: %s", r)
++		}
++	}
++	logger.Infof("Synced informers. Starting EventListener")
+ 	// Listen and serve
+ 	logger.Infof("Listen and serve on port %s", sinkArgs.Port)
+ 	mux := http.NewServeMux()
+-- 
+2.20.1
+
