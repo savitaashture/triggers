@@ -8,7 +8,7 @@ CORE_IMAGES=./cmd/controller ./cmd/eventlistenersink ./cmd/webhook ./cmd/interce
 # You need to provide a RELEASE_VERSION when using targets like `push-image`, you can do it directly
 # on the command like this: `make push-image RELEASE_VERSION=0.4.0`
 RELEASE_VERSION=
-REGISTRY_CI_URL=registry.svc.ci.openshift.org/openshift/tektoncd-v$(RELEASE_VERSION):tektoncd-triggers
+REGISTRY_CI_URL=registry.ci.openshift.org/openshift/tektoncd-v$(RELEASE_VERSION):tektoncd-triggers
 REGISTRY_RELEASE_URL=quay.io/openshift-pipeline/tektoncd-triggers
 
 # Install core images
