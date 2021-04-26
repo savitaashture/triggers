@@ -61,7 +61,12 @@ func ResolveTrigger(trigger triggersv1.Trigger, getTB getTriggerBinding, getCTB 
 		var ttName string
 		if trigger.Spec.Template.Ref != nil {
 			ttName = *trigger.Spec.Template.Ref
+		} else {
+			// TODO: Remove Name field
+			// Ignore staticcheck linter as it will complain about using deprecated type
+			ttName = trigger.Spec.Template.DeprecatedName //nolint:staticcheck
 		}
+
 		resolvedTT, err = getTT(ttName)
 		if err != nil {
 			return ResolvedTrigger{}, fmt.Errorf("error getting TriggerTemplate %s: %w", ttName, err)
