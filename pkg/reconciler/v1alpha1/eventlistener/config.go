@@ -22,7 +22,7 @@ var (
 	// DefaultPort is the port used by default.
 	DefaultPort = 8080
 	// DefaultSetSecurityContext is the SetSecurityContext value used by default.
-	DefaultSetSecurityContext = true
+	DefaultSetSecurityContext = false
 	// DefaultReadTimeout is the ReadTimeout used by default.
 	DefaultReadTimeout = int64(5)
 	// DefaultWriteTimeout is the WriteTimeout used by default.
