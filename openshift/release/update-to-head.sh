@@ -27,6 +27,13 @@ if [[ -d openshift/patches ]];then
     done
 fi
 
+# add release.yaml from previous successful nightly build to re-synced release-next as a backup
+git fetch openshift release-next
+git checkout FETCH_HEAD openshift/release/tektoncd-triggers-nightly.yaml
+
+git add openshift/release/tektoncd-triggers-nightly.yaml
+git commit -m ":robot: Add previous days release.yaml as back up"
+
 git push -f openshift release-next
 
 # Trigger CI
