@@ -3,7 +3,12 @@
 set -e
 source $(dirname $0)/../vendor/github.com/tektoncd/plumbing/scripts/e2e-tests.sh
 source $(dirname $0)/resolve-yamls.sh
-source $(dirname $0)/pipeline-latest-release.sh
+
+if [[ "${1:-}" == "nightly" ]];then
+  source $(dirname $0)/pipeline-latest-release.sh
+else
+  source $(dirname $0)/pipeline-latest-release.sh "--only-stable-release"
+fi
 
 set -x
 
