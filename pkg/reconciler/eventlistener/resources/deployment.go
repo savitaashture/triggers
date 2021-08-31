@@ -17,6 +17,7 @@ limitations under the License.
 package resources
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 
@@ -103,6 +104,7 @@ func MakeDeployment(el *v1beta1.EventListener, c Config) (*appsv1.Deployment, er
 	}
 
 	var securityContext corev1.PodSecurityContext
+	fmt.Println("default security context values are", *c.SetSecurityContext, "***", c.SetSecurityContext)
 	if *c.SetSecurityContext {
 		securityContext = strongerSecurityPolicy
 	}
