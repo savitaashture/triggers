@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-MAX_SHIFT=5
+MAX_SHIFT=8
 STABLE_RELEASE_URL='https://raw.githubusercontent.com/openshift/tektoncd-pipeline/${version}/openshift/release/tektoncd-pipeline-${version}.yaml'
 NIGHTLY_RELEASE='https://raw.githubusercontent.com/openshift/tektoncd-pipeline/release-next/openshift/release/tektoncd-pipeline-nightly.yaml'
 
