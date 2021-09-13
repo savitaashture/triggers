@@ -1,0 +1,25 @@
+From 952a84925f17a52a649fcb77de44c9142a28c6b8 Mon Sep 17 00:00:00 2001
+From: savitaashture <sashture@redhat.com>
+Date: Tue, 31 Aug 2021 20:52:31 +0530
+Subject: [PATCH] Modify controller yaml file to disable securityContext
+
+---
+ config/controller.yaml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/config/controller.yaml b/config/controller.yaml
+index c11cd702..061b688d 100644
+--- a/config/controller.yaml
++++ b/config/controller.yaml
+@@ -55,7 +55,7 @@ spec:
+           "-stderrthreshold", "INFO",
+           "-el-image", "ko://github.com/tektoncd/triggers/cmd/eventlistenersink",
+           "-el-port", "8080",
+-          "-el-security-context=true",
++          "-el-security-context=false",
+           "-el-readtimeout", "5",
+           "-el-writetimeout", "40",
+           "-el-idletimeout", "120",
+-- 
+2.20.1
+

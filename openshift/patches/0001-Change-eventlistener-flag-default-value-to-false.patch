@@ -1,0 +1,25 @@
+From b6960e2e665414be78a05dd40115f13ab8f51209 Mon Sep 17 00:00:00 2001
+From: savitaashture <sashture@redhat.com>
+Date: Tue, 31 Aug 2021 11:57:34 +0530
+Subject: [PATCH] Update file name in patches
+
+---
+ pkg/reconciler/eventlistener/resources/config.go | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/pkg/reconciler/eventlistener/resources/config.go b/pkg/reconciler/eventlistener/resources/config.go
+index 20b4bfc6..c74da9f7 100644
+--- a/pkg/reconciler/eventlistener/resources/config.go
++++ b/pkg/reconciler/eventlistener/resources/config.go
+@@ -22,7 +22,7 @@ var (
+ 	// DefaultPort is the port used by default.
+ 	DefaultPort = 8080
+ 	// DefaultSetSecurityContext is the SetSecurityContext value used by default.
+-	DefaultSetSecurityContext = true
++	DefaultSetSecurityContext = false
+ 	// DefaultReadTimeout is the ReadTimeout used by default.
+ 	DefaultReadTimeout = int64(5)
+ 	// DefaultWriteTimeout is the WriteTimeout used by default.
+-- 
+2.20.1
+
