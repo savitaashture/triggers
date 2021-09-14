@@ -3,12 +3,7 @@
 set -e
 source $(dirname $0)/../vendor/github.com/tektoncd/plumbing/scripts/e2e-tests.sh
 source $(dirname $0)/resolve-yamls.sh
-if [[ "${1:-}" == "nightly" ]];then
-  source $(dirname $0)/pipeline-latest-release.sh
-else
-  source $(dirname $0)/pipeline-latest-release.sh "--only-stable-release"
-fi
-
+source $(dirname $0)/pipeline-latest-release.sh
 set -x
 
 readonly API_SERVER=$(oc config view --minify | grep server | awk -F'//' '{print $2}' | awk -F':' '{print $1}')

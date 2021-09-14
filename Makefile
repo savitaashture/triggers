@@ -16,11 +16,6 @@ install: installuidwrapper
 	go install $(CORE_IMAGES)
 .PHONY: install
 
-# Run E2E tests on OpenShift for nightly
-test-e2e-nightly: check-images
-	./openshift/e2e-tests-openshift.sh nightly
-.PHONY: test-e2e-nightly
-
 # Run E2E tests on OpenShift
 test-e2e: check-images
 	./openshift/e2e-tests-openshift.sh
