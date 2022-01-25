@@ -20,9 +20,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 	"sync"
 
+	//"github.com/tektoncd/triggers/pkg/apis/config"
+	"github.com/tektoncd/triggers/pkg/apis/config"
 	"github.com/tektoncd/triggers/pkg/apis/triggers/contexts"
 	"github.com/tektoncd/triggers/pkg/apis/triggers/v1beta1"
 	triggersclientset "github.com/tektoncd/triggers/pkg/client/clientset/versioned"
@@ -93,6 +96,7 @@ var (
 	_ eventlistenerreconciler.Interface = (*Reconciler)(nil)
 )
 
+var IsK8sEventsEnabled string
 // ReconcileKind compares the actual state with the desired, and attempts to
 // converge the two.
 func (r *Reconciler) ReconcileKind(ctx context.Context, el *v1beta1.EventListener) pkgreconciler.Event {
@@ -103,6 +107,11 @@ func (r *Reconciler) ReconcileKind(ctx context.Context, el *v1beta1.EventListene
 	// We may be reading a version of the object that was stored at an older version
 	// and may not have had all of the assumed default specified.
 	el.SetDefaults(contexts.WithUpgradeViaDefaulting(ctx))
+
+	cfg := config.FromContextOrDefaults(ctx)
+	fmt.Println("CFFFFFFFFFFFFFFFFF", cfg)
+	fmt.Println("KKKKKKKKKKKKKK", cfg.Defaults.DefaultKubernetesEventsSink)
+	IsK8sEventsEnabled = cfg.Defaults.DefaultKubernetesEventsSink
 
 	if el.Spec.Resources.CustomResource != nil {
 		return r.reconcileCustomObject(ctx, el)
@@ -118,6 +127,11 @@ func (r *Reconciler) ReconcileKind(ctx context.Context, el *v1beta1.EventListene
 	}
 
 	return wrapError(serviceReconcileError, deploymentReconcileError)
+}
+
+func IsEventsEnabled() string {
+	fmt.Println("Inside this function")
+	return IsK8sEventsEnabled
 }
 
 func (r *Reconciler) reconcileService(ctx context.Context, el *v1beta1.EventListener) error {
@@ -181,6 +195,10 @@ func (r *Reconciler) reconcileService(ctx context.Context, el *v1beta1.EventList
 }
 
 func (r *Reconciler) reconcileDeployment(ctx context.Context, el *v1beta1.EventListener) error {
+	d, e := os.ReadFile("/tmp/config/events")
+	fmt.Println("Errororooor1111111", e)
+	fmt.Println("datatatatta of file111111", string(d))
+
 	deployment, err := resources.MakeDeployment(ctx, el, r.configAcc, r.config)
 	if err != nil {
 		logging.FromContext(ctx).Error(err)

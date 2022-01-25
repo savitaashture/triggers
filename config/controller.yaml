@@ -82,3 +82,13 @@ spec:
           allowPrivilegeEscalation: false
           # User 65532 is the distroless nonroot user ID
           runAsUser: 65532
+        volumeMounts:
+          - name: config-defaults-triggers
+            mountPath: /tmp/config
+      volumes:
+        - name: config-defaults-triggers
+          configMap:
+            name: config-defaults-triggers
+            items:
+              - key: default-kubernetes-events-sink
+                path: events

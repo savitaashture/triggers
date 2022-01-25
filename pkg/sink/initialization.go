@@ -93,6 +93,7 @@ type Clients struct {
 	RESTClient      restclient.Interface
 	TriggersClient  triggersclientset.Interface
 	K8sClient       *kubeclientset.Clientset
+	ClusterConfig *rest.Config
 }
 
 // GetArgs returns the flagged Args
@@ -138,5 +139,6 @@ func ConfigureClients(clusterConfig *rest.Config) (Clients, error) {
 		RESTClient:      kubeClient.RESTClient(),
 		TriggersClient:  triggersClient,
 		K8sClient:       kubeClient,
+		ClusterConfig: clusterConfig,
 	}, nil
 }

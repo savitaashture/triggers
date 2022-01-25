@@ -40,3 +40,5 @@ data:
     # default-service-account contains the default service account name
     # to use for TaskRun and PipelineRun, if none is specified.
     default-service-account: "default"
+
+    default-kubernetes-events-sink: "true"

@@ -18,6 +18,7 @@ package config
 
 import (
 	"context"
+	"fmt"
 
 	"knative.dev/pkg/configmap"
 )
@@ -34,7 +35,9 @@ type Config struct {
 // FromContext extracts a Config from the provided context.
 func FromContext(ctx context.Context) *Config {
 	x, ok := ctx.Value(cfgKey{}).(*Config)
+	fmt.Println("KKKKKKKKKKKKKKKKKKKKKKKKKK", x, "PPPPPPPPPPPPPPPPp", ok)
 	if ok {
+		fmt.Println("ccccccccccccccccllllllllllllll", x.Defaults.DefaultKubernetesEventsSink)
 		return x
 	}
 	return nil
@@ -91,7 +94,9 @@ func (s *Store) ToContext(ctx context.Context) context.Context {
 // Load creates a Config from the current config state of the Store.
 func (s *Store) Load() *Config {
 	defaults := s.UntypedLoad(GetDefaultsConfigName())
+	fmt.Println("LLLLLLLLLLLLL**************", defaults)
 	if defaults == nil {
+		fmt.Println("giiiiiiiiiiiiiiiiii")
 		defaults, _ = NewDefaultsFromMap(map[string]string{})
 	}
 	featureFlags := s.UntypedLoad(GetFeatureFlagsConfigName())
@@ -99,6 +104,7 @@ func (s *Store) Load() *Config {
 		featureFlags, _ = NewFeatureFlagsFromMap(map[string]string{})
 	}
 
+	fmt.Println("no its herererre")
 	return &Config{
 		Defaults:     defaults.(*Defaults).DeepCopy(),
 		FeatureFlags: featureFlags.(*FeatureFlags).DeepCopy(),

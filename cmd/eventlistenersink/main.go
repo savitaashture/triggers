@@ -18,8 +18,6 @@ package main
 
 import (
 	"context"
-	"log"
-
 	"github.com/tektoncd/triggers/pkg/adapter"
 	dynamicClientset "github.com/tektoncd/triggers/pkg/client/dynamic/clientset"
 	"github.com/tektoncd/triggers/pkg/client/dynamic/clientset/tekton"
@@ -29,6 +27,7 @@ import (
 	"knative.dev/pkg/injection"
 	"knative.dev/pkg/injection/clients/dynamicclient"
 	"knative.dev/pkg/signals"
+	"log"
 )
 
 const (
@@ -66,5 +65,22 @@ func main() {
 		ctx = injection.WithNamespaceScope(ctx, sinkArgs.ElNamespace)
 	}
 
+	//ctx, _ = injection.EnableInjectionOrDie(ctx, cfg)
+	//
+	//logger, atomicLevel := sharedmain.SetupLoggerOrDie(ctx, EventListenerLogKey)
+	//defer flush(logger)
+	//ctx = logging.WithLogger(ctx, logger)
+	//cmw := sharedmain.SetupConfigMapWatchOrDie(ctx, logger)
+	//store := config.NewStore(logging.FromContext(ctx).Named("config-store"))
+	//store.WatchConfigs(cmw)
+	//sharedmain.WatchLoggingConfigOrDie(ctx, cmw, logger, atomicLevel, EventListenerLogKey)
+	// Get mww object from knative pkg and try to do watch here
+	//  use envFrom and env as an envirnotment
+
 	evadapter.MainWithContext(ctx, EventListenerLogKey, adapter.NewEnvConfig, adapter.New(sinkArgs, sinkClients, recorder))
 }
+
+//func flush(logger *zap.SugaredLogger) {
+//	logger.Sync()
+//	metrics.FlushExporter()
+//}

@@ -18,7 +18,6 @@ package v1beta1
 
 import (
 	"context"
-
 	"github.com/tektoncd/triggers/pkg/apis/config"
 	"github.com/tektoncd/triggers/pkg/apis/triggers/contexts"
 )
@@ -26,6 +25,7 @@ import (
 // SetDefaults sets the defaults on the object.
 func (el *EventListener) SetDefaults(ctx context.Context) {
 	cfg := config.FromContextOrDefaults(ctx)
+	//fmt.Println("in setdefault", cfg.Defaults.DefaultKubernetesEventsSink)
 	if contexts.IsUpgradeViaDefaulting(ctx) {
 		defaultSA := cfg.Defaults.DefaultServiceAccount
 		// set defaults

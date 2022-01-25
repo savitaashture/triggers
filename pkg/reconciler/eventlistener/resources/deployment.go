@@ -20,6 +20,7 @@ import (
 	"context"
 	"os"
 	"strconv"
+	"fmt"
 
 	"github.com/tektoncd/triggers/pkg/apis/triggers/v1beta1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -75,6 +76,29 @@ func MakeDeployment(ctx context.Context, el *v1beta1.EventListener, configAcc re
 		}
 	}
 
+	d, e := os.ReadFile("/tmp/config/events")
+	fmt.Println("Errororooor", e)
+	fmt.Println("datatatatta of file*************************************************", string(d))
+
+	f := corev1.HostPathDirectoryOrCreate
+	vol = append(vol, corev1.Volume{
+		Name:         "config-defaults-triggers",
+		VolumeSource: corev1.VolumeSource{
+			HostPath: &corev1.HostPathVolumeSource{
+				Path: "/tmp/config/events",
+				Type: &f,
+			},
+			//ConfigMap: &corev1.ConfigMapVolumeSource{
+			//	LocalObjectReference: corev1.LocalObjectReference{
+			//		Name: "config-defaults-triggers",
+			//	},
+			//	Items:                []corev1.KeyToPath{{
+			//		Key: "default-kubernetes-events-sink",
+			//		Path: "events",
+			//	}},
+			//},
+		},
+	})
 	if el.Spec.Resources.KubernetesResource != nil {
 		if el.Spec.Resources.KubernetesResource.Replicas != nil {
 			replicas = el.Spec.Resources.KubernetesResource.Replicas

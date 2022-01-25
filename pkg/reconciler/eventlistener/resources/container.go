@@ -67,8 +67,24 @@ func MakeContainer(el *v1beta1.EventListener, configAcc reconcilersource.ConfigA
 			Name:  "NAME",
 			Value: el.Name,
 		}}...),
+		VolumeMounts: []corev1.VolumeMount{{
+			Name: "config-defaults-triggers",
+			MountPath: "/tmp/config/",
+		}},
 	}
 
+	/*
+	, {
+				Name: os.Getenv("CONFIG_DEFAULTS_NAME"),
+				ValueFrom: &corev1.EnvVarSource{
+					ConfigMapKeyRef:  &corev1.ConfigMapKeySelector{
+						LocalObjectReference: corev1.LocalObjectReference{Name: os.Getenv("CONFIG_DEFAULTS_NAME")},
+						Key: "default-kubernetes-events-sink",
+					},
+				},
+
+			}
+	*/
 	for _, opt := range opts {
 		opt(&container)
 	}

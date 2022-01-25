@@ -22,6 +22,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
+
+	//"github.com/tektoncd/triggers/pkg/reconciler/eventlistener"
+
+	"github.com/tektoncd/triggers/pkg/apis/config"
 	"io/ioutil"
 	"net/http"
 	"sync"
@@ -43,6 +48,7 @@ import (
 	discoveryclient "k8s.io/client-go/discovery"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/record"
 )
 
@@ -65,6 +71,10 @@ type Sink struct {
 	WGProcessTriggers *sync.WaitGroup
 	EventRecorder     record.EventRecorder
 
+	SinkContext context.Context
+	Clustercfg *rest.Config
+
+	IsEventsEnabled string
 	// listers index properties about resources
 	EventListenerLister         listers.EventListenerLister
 	TriggerLister               listers.TriggerLister
@@ -90,14 +100,49 @@ type Response struct {
 	ErrorMessage string `json:"errorMessage,omitempty"`
 }
 
-func (r Sink) emitEvents(recorder record.EventRecorder, el *triggersv1.EventListener, eventType string, err error) {
-	if el.Annotations[events.EnableEventListenerEvents] == "true" {
+func (r Sink) emitEvents(recorder record.EventRecorder, el *triggersv1.EventListener, eventType string, err error, isEventsEnabled string) {
+	//fmt.Println("isEventsEnabledisEventsEnabled", eventlistener.IsEventsEnabled())
+	fmt.Println("isEventsEnabledisEventsEnabled", isEventsEnabled)
+	d, e := os.ReadFile("/tmp/config/events")
+	fmt.Println("Errororooor", e)
+	fmt.Println("datatatatta of file*************************************************", string(d))
+
+	d, e = os.ReadFile("/tmp/config/")
+	fmt.Println("Errororooor 1111111111111111111111111111111111111111111111111111", e)
+	fmt.Println("datatatatta of file 11111111111111111111111111111111111111111111111111*************************************************", string(d))
+	//if eventlistener.IsEventsEnabled() == "true" {
+	//fmt.Println("after env set", os.Getenv("EVENTENABLED"))
+	if isEventsEnabled == "true" {
 		events.Emit(recorder, eventType, el, err)
 	}
 }
 
 // HandleEvent processes an incoming HTTP event for the event listener.
 func (r Sink) HandleEvent(response http.ResponseWriter, request *http.Request) {
+
+	//ctx, _ := injection.EnableInjectionOrDie(r.SinkContext, r.Clustercfg)
+	//
+	//logger, atomicLevel := sharedmain.SetupLoggerOrDie(ctx, "eventlistener")
+	//defer flush(logger)
+	//ctx = logging.WithLogger(ctx, logger)
+	//cmw := sharedmain.SetupConfigMapWatchOrDie(ctx, logger)
+	//store := config.NewStore(logging.FromContext(ctx).Named("config-store"))
+	//store.WatchConfigs(cmw)
+	//sharedmain.WatchLoggingConfigOrDie(ctx, cmw, logger, atomicLevel, "eventlistener")
+
+	//store := config.NewStore(logging.FromContext(r.SinkContext).Named("config-store"))
+	////store := config.NewStore(logging.FromContext(request.Context()).Named("config-store"))
+	//var cmw configmap.Watcher
+	//store.WatchConfigs(cmw)
+	//ctx := store.ToContext(request.Context())
+	//ctx := config.ToContext(request.Context(), store.Load())
+	//fmt.Println("CTSSSSSSSSSSSSSSSxxxxxxxxxxxx", ctx)
+	//fmt.Println("UUUUUUUUUUUUUUUUUUUU", config.FromContext(ctx))
+	cfg := config.FromContextOrDefaults(r.SinkContext)
+	//cfg := config.FromContext(r.SinkContext)
+	//fmt.Println("CFFGGG2222222222222222", cfg)
+	fmt.Println("ffffefefe", cfg.Defaults)
+
 	log := r.Logger.With(
 		zap.String("eventlistener", r.EventListenerName),
 		zap.String("namespace", r.EventListenerNamespace),
@@ -120,11 +165,12 @@ func (r Sink) HandleEvent(response http.ResponseWriter, request *http.Request) {
 		log.Errorf("Error getting EventListener %s in Namespace %s: %s", r.EventListenerName, r.EventListenerNamespace, err)
 		r.recordCountMetrics(failTag)
 		response.WriteHeader(http.StatusInternalServerError)
-		r.emitEvents(r.EventRecorder, &elTemp, events.TriggerProcessingFailedV1, err)
+		r.emitEvents(r.EventRecorder, &elTemp, events.TriggerProcessingFailedV1, err, cfg.Defaults.DefaultKubernetesEventsSink)
 		return
 	}
 
-	r.emitEvents(r.EventRecorder, el, events.TriggerProcessingStartedV1, nil)
+	fmt.Println("cfg.Defaults.DefaultKubernetesEventsSink", cfg.Defaults.DefaultKubernetesEventsSink)
+	r.emitEvents(r.EventRecorder, el, events.TriggerProcessingStartedV1, nil, cfg.Defaults.DefaultKubernetesEventsSink)
 
 	elUID := string(el.GetUID())
 	log = log.With(zap.String("eventlistenerUID", elUID))
@@ -133,7 +179,7 @@ func (r Sink) HandleEvent(response http.ResponseWriter, request *http.Request) {
 		log.Errorf("Error reading event body: %s", err)
 		r.recordCountMetrics(failTag)
 		response.WriteHeader(http.StatusInternalServerError)
-		r.emitEvents(r.EventRecorder, el, events.TriggerProcessingFailedV1, err)
+		r.emitEvents(r.EventRecorder, el, events.TriggerProcessingFailedV1, err, cfg.Defaults.DefaultKubernetesEventsSink)
 		return
 	}
 
@@ -144,7 +190,7 @@ func (r Sink) HandleEvent(response http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		r.Logger.Errorf("unable to select configured mergedTriggers: %s", err)
 		response.WriteHeader(http.StatusInternalServerError)
-		r.emitEvents(r.EventRecorder, el, events.TriggerProcessingFailedV1, err)
+		r.emitEvents(r.EventRecorder, el, events.TriggerProcessingFailedV1, err, cfg.Defaults.DefaultKubernetesEventsSink)
 		return
 	}
 
@@ -153,7 +199,7 @@ func (r Sink) HandleEvent(response http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		log.Errorf("error merging triggers: %s", err)
 		response.WriteHeader(http.StatusInternalServerError)
-		r.emitEvents(r.EventRecorder, el, events.TriggerProcessingFailedV1, err)
+		r.emitEvents(r.EventRecorder, el, events.TriggerProcessingFailedV1, err, cfg.Defaults.DefaultKubernetesEventsSink)
 		return
 	}
 	r.WGProcessTriggers.Add(len(mergedTriggers))
@@ -187,9 +233,9 @@ func (r Sink) HandleEvent(response http.ResponseWriter, request *http.Request) {
 	}
 	if err := json.NewEncoder(response).Encode(body); err != nil {
 		log.Errorf("failed to write back sink response: %v", err)
-		r.emitEvents(r.EventRecorder, el, events.TriggerProcessingFailedV1, err)
+		r.emitEvents(r.EventRecorder, el, events.TriggerProcessingFailedV1, err, cfg.Defaults.DefaultKubernetesEventsSink)
 	}
-	r.emitEvents(r.EventRecorder, el, events.TriggerProcessingSuccessfulV1, nil)
+	r.emitEvents(r.EventRecorder, el, events.TriggerProcessingSuccessfulV1, nil, cfg.Defaults.DefaultKubernetesEventsSink)
 }
 
 func (r Sink) merge(et []triggersv1.EventListenerTrigger, trItems []*triggersv1.Trigger) ([]*triggersv1.Trigger, error) {
