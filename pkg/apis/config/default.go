@@ -18,6 +18,7 @@ package config
 
 import (
 	"os"
+	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
 )
@@ -25,12 +26,15 @@ import (
 const (
 	defaultServiceAccountKey   = "default-service-account"
 	DefaultServiceAccountValue = "default"
+	DefaultKubernetesEventsSinkKey   = "default-kubernetes-events-sink"
+	DefaultKubernetesEventsSinkValue = "true"
 )
 
 // Defaults holds the default configurations
 // +k8s:deepcopy-gen=true
 type Defaults struct {
 	DefaultServiceAccount string
+	DefaultKubernetesEventsSink string
 }
 
 // GetDefaultsConfigName returns the name of the configmap containing all
@@ -59,10 +63,18 @@ func (cfg *Defaults) Equals(other *Defaults) bool {
 func NewDefaultsFromMap(cfgMap map[string]string) (*Defaults, error) {
 	tc := Defaults{
 		DefaultServiceAccount: DefaultServiceAccountValue,
+		DefaultKubernetesEventsSink: DefaultKubernetesEventsSinkValue,
 	}
 
 	if defaultServiceAccount, ok := cfgMap[defaultServiceAccountKey]; ok {
 		tc.DefaultServiceAccount = defaultServiceAccount
+	}
+
+	defaultKubernetesEventsSink, ok := cfgMap[DefaultKubernetesEventsSinkKey]
+	fmt.Println("values for keyeyeyeyyeyeye k8s", defaultKubernetesEventsSink, "OKKKKKKKKKKKK", ok)
+	if ok {
+		fmt.Println("inide if condititiititi")
+		tc.DefaultKubernetesEventsSink = defaultKubernetesEventsSink
 	}
 
 	return &tc, nil

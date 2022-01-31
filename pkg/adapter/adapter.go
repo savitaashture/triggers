@@ -108,6 +108,8 @@ func (s *sinker) Start(ctx context.Context) error {
 		Auth:                   sink.DefaultAuthOverride{},
 		WGProcessTriggers:      &sync.WaitGroup{},
 		EventRecorder:          s.createRecorder(s.injCtx, "EventListener"),
+		Clustercfg: s.Clients.ClusterConfig,
+		EventsCtx: s.Clients.EventsCtx,
 
 		// Register all the listers we'll need
 		EventListenerLister:         eventlistenerinformer.Get(s.injCtx).Lister(),

@@ -23,6 +23,10 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"knative.dev/pkg/injection"
+	"knative.dev/pkg/injection/sharedmain"
+	"knative.dev/pkg/logging"
+	"knative.dev/pkg/metrics"
 	"net/http"
 	"sync"
 
@@ -44,6 +48,8 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/record"
+	"github.com/tektoncd/triggers/pkg/apis/config"
+	"k8s.io/client-go/rest"
 )
 
 // Sink defines the sink resource for processing incoming events for the
@@ -64,6 +70,8 @@ type Sink struct {
 	// Currently only used in tests to wait for all triggers to finish processing
 	WGProcessTriggers *sync.WaitGroup
 	EventRecorder     record.EventRecorder
+	Clustercfg *rest.Config
+	EventsCtx context.Context
 
 	// listers index properties about resources
 	EventListenerLister         listers.EventListenerLister
@@ -96,8 +104,28 @@ func (r Sink) emitEvents(recorder record.EventRecorder, el *triggersv1.EventList
 	}
 }
 
+func flush(logger *zap.SugaredLogger) {
+	logger.Sync()
+	metrics.FlushExporter()
+}
+
 // HandleEvent processes an incoming HTTP event for the event listener.
 func (r Sink) HandleEvent(response http.ResponseWriter, request *http.Request) {
+	fmt.Println("inside eventhandler")
+	ctx, _ := injection.EnableInjectionOrDie(r.EventsCtx, r.Clustercfg)
+
+	logger, atomicLevel := sharedmain.SetupLoggerOrDie(ctx, "eventlistener")
+	defer flush(logger)
+	ctx = logging.WithLogger(ctx, logger)
+	cmw := sharedmain.SetupConfigMapWatchOrDie(ctx, logger)
+	store := config.NewStore(logging.FromContext(ctx).Named("config-store"))
+	store.WatchConfigs(cmw)
+	sharedmain.WatchLoggingConfigOrDie(ctx, cmw, logger, atomicLevel, "eventlistener")
+
+	cfg := config.FromContextOrDefaults(ctx)
+
+	fmt.Println("all default config values", cfg.Defaults)
+
 	log := r.Logger.With(
 		zap.String("eventlistener", r.EventListenerName),
 		zap.String("namespace", r.EventListenerNamespace),

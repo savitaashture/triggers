@@ -19,6 +19,7 @@ package sink
 import (
 	"flag"
 	"time"
+	"context"
 
 	triggersclientset "github.com/tektoncd/triggers/pkg/client/clientset/versioned"
 	"golang.org/x/xerrors"
@@ -93,6 +94,8 @@ type Clients struct {
 	RESTClient      restclient.Interface
 	TriggersClient  triggersclientset.Interface
 	K8sClient       *kubeclientset.Clientset
+	ClusterConfig *rest.Config
+	EventsCtx context.Context
 }
 
 // GetArgs returns the flagged Args
@@ -124,7 +127,7 @@ func GetArgs() (Args, error) {
 }
 
 // ConfigureClients returns the kubernetes and triggers clientsets
-func ConfigureClients(clusterConfig *rest.Config) (Clients, error) {
+func ConfigureClients(ctx context.Context, clusterConfig *rest.Config) (Clients, error) {
 	kubeClient, err := kubeclientset.NewForConfig(clusterConfig)
 	if err != nil {
 		return Clients{}, xerrors.Errorf("Failed to create KubeClient: %s", err)
@@ -138,5 +141,7 @@ func ConfigureClients(clusterConfig *rest.Config) (Clients, error) {
 		RESTClient:      kubeClient.RESTClient(),
 		TriggersClient:  triggersClient,
 		K8sClient:       kubeClient,
+		ClusterConfig: clusterConfig,
+		EventsCtx: ctx,
 	}, nil
 }
