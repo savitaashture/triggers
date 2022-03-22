@@ -106,6 +106,7 @@ func (is *Server) ExecuteInterceptor(r *http.Request) ([]byte, error) {
 	var ii triggersv1.InterceptorInterface
 
 	// Find correct interceptor
+	fmt.Println("request url path is", r.URL.Path, "******************", strings.ToLower(r.URL.Path))
 	ii, ok := is.interceptors[strings.TrimPrefix(strings.ToLower(r.URL.Path), "/")]
 	if !ok {
 		return nil, badRequest(fmt.Errorf("path did not match any interceptors"))
@@ -121,6 +122,7 @@ func (is *Server) ExecuteInterceptor(r *http.Request) ([]byte, error) {
 		return nil, internal(fmt.Errorf("failed to read body: %w", err))
 	}
 	var ireq triggersv1.InterceptorRequest
+	fmt.Println("body.Bytes()body.Bytes()", string(body.Bytes()))
 	if err := json.Unmarshal(body.Bytes(), &ireq); err != nil {
 		return nil, badRequest(fmt.Errorf("failed to parse body as InterceptorRequest: %w", err))
 	}

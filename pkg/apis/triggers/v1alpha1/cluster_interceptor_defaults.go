@@ -18,7 +18,6 @@ package v1alpha1
 
 import (
 	"context"
-
 	"github.com/tektoncd/triggers/pkg/apis/triggers/contexts"
 )
 
@@ -27,7 +26,7 @@ func (it *ClusterInterceptor) SetDefaults(ctx context.Context) {
 	if contexts.IsUpgradeViaDefaulting(ctx) {
 		if svc := it.Spec.ClientConfig.Service; svc != nil {
 			if svc.Port == nil {
-				svc.Port = &defaultPort
+				svc.Port = &defaultHTTPSPort
 			}
 		}
 	}

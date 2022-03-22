@@ -128,6 +128,7 @@ func (s *sinker) Start(ctx context.Context) error {
 		ClusterTriggerBindingLister: clustertriggerbindingsinformer.Get(s.injCtx).Lister(),
 		TriggerTemplateLister:       triggertemplatesinformer.Get(s.injCtx).Lister(),
 		ClusterInterceptorLister:    clusterinterceptorsinformer.Get(s.injCtx).Lister(),
+		CertData:                    s.Clients.CertData,
 	}
 
 	mux := http.NewServeMux()

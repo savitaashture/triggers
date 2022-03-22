@@ -18,7 +18,6 @@ package clusterinterceptor
 
 import (
 	"context"
-
 	"github.com/tektoncd/triggers/pkg/apis/triggers/contexts"
 	"github.com/tektoncd/triggers/pkg/apis/triggers/v1alpha1"
 	interceptorreconciler "github.com/tektoncd/triggers/pkg/client/injection/reconciler/triggers/v1alpha1/clusterinterceptor"

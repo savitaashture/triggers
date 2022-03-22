@@ -19,6 +19,7 @@ package sink
 import (
 	"context"
 	"flag"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"time"
 
 	triggersclientset "github.com/tektoncd/triggers/pkg/client/clientset/versioned"
@@ -119,6 +120,7 @@ type Clients struct {
 	TriggersClient  triggersclientset.Interface
 	K8sClient       *kubeclientset.Clientset
 	CEClient        cloudevent.CEClient
+	CertData        []byte
 }
 
 // GetArgs returns the flagged Args
@@ -166,12 +168,34 @@ func ConfigureClients(ctx context.Context, clusterConfig *rest.Config) (Clients,
 		return Clients{}, xerrors.Errorf("Failed to create TriggersClient: %s", err)
 	}
 	ceClient := cloudevent.Get(ctx)
-
+	certData, err := getCertificateData(ctx, kubeClient)
+	if err != nil {
+		return Clients{}, xerrors.Errorf("Failed to get certs from secret: %s", err)
+	}
 	return Clients{
 		DiscoveryClient: kubeClient.Discovery(),
 		RESTClient:      kubeClient.RESTClient(),
 		TriggersClient:  triggersClient,
 		K8sClient:       kubeClient,
 		CEClient:        ceClient,
+		CertData:        certData,
 	}, nil
+}
+
+func getCertificateData(ctx context.Context, kubeClient *kubeclientset.Clientset) ([]byte, error) {
+	var certData []byte
+	allSecrets, err := kubeClient.CoreV1().Secrets("").List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return nil, xerrors.Errorf("failed to list Secrets: %s", err)
+	}
+	for _, v := range allSecrets.Items {
+		if v.Name == "tekton-triggers-core-interceptors" {
+			for i, v := range v.Data {
+				if i == "ca-cert.pem" {
+					certData = v
+				}
+			}
+		}
+	}
+	return certData, nil
 }

@@ -484,7 +484,7 @@ func TestExecute(t *testing.T) {
 				t.Fatalf("failed to initialize core interceptors: %v", err)
 			}
 			httpClient := testServer(t, coreInterceptors)
-			got, err := interceptors.Execute(context.Background(), httpClient, tc.req, tc.url)
+			got, err := interceptors.Execute(context.Background(), httpClient, tc.req, tc.url, []byte{})
 			if err != nil {
 				t.Fatalf("Execute() unexpected error: %s", err)
 			}
@@ -541,7 +541,7 @@ func TestExecute_Error(t *testing.T) {
 	}} {
 		t.Run(tc.name, func(t *testing.T) {
 			client := testServer(t, tc.svr)
-			got, err := interceptors.Execute(context.Background(), client, tc.req, tc.url)
+			got, err := interceptors.Execute(context.Background(), client, tc.req, tc.url, []byte{})
 			if err == nil {
 				t.Fatalf("Execute() did not get expected error. Response was %+v", got)
 			}

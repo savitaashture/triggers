@@ -19,7 +19,6 @@ package v1alpha1
 import (
 	"errors"
 	"fmt"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"knative.dev/pkg/apis"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
@@ -72,7 +71,7 @@ type ClientConfig struct {
 	Service *ServiceReference `json:"service,omitempty"`
 }
 
-var defaultPort = int32(80)
+var defaultHTTPSPort = int32(8443)
 
 // ServiceReference is a reference to a Service object
 // with an optional path
@@ -112,12 +111,12 @@ func (it *ClusterInterceptor) ResolveAddress() (*apis.URL, error) {
 	if svc == nil {
 		return nil, ErrNilURL
 	}
-	port := defaultPort
+	port := defaultHTTPSPort
 	if svc.Port != nil {
 		port = *svc.Port
 	}
 	url := &apis.URL{
-		Scheme: "http", // TODO: Support HTTPs if caBundle is present
+		Scheme: "https", // TODO: Support HTTPs if caBundle is present
 		Host:   fmt.Sprintf("%s.%s.svc:%d", svc.Name, svc.Namespace, port),
 		Path:   svc.Path,
 	}

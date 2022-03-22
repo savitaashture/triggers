@@ -78,6 +78,7 @@ type Sink struct {
 	ClusterTriggerBindingLister listers.ClusterTriggerBindingLister
 	TriggerTemplateLister       listers.TriggerTemplateLister
 	ClusterInterceptorLister    listersv1alpha1.ClusterInterceptorLister
+	CertData                    []byte
 }
 
 // Response defines the HTTP body that the Sink responds to events with.
@@ -479,8 +480,8 @@ func (r Sink) ExecuteInterceptors(trInt []*triggersv1.TriggerInterceptor, in *ht
 			return nil, nil, nil, fmt.Errorf("could not resolve interceptor URL: %w", err)
 		}
 
-		// TODO: Plumb through context from EL
-		interceptorResponse, err := interceptors.Execute(context.Background(), r.HTTPClient, &request, url.String())
+		fmt.Println("namespace inside sink is differe", namespace)
+		interceptorResponse, err := interceptors.Execute(context.Background(), r.HTTPClient, &request, url.String(), r.CertData)
 		if err != nil {
 			return nil, nil, nil, err
 		}

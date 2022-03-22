@@ -57,7 +57,7 @@ func TestClusterInterceptorSetDefaults(t *testing.T) {
 					Service: &triggersv1.ServiceReference{
 						Namespace: "default",
 						Name:      "github-svc",
-						Port:      ptr.Int32(80),
+						Port:      ptr.Int32(8443),
 					},
 				},
 			},

@@ -19,11 +19,15 @@ package interceptors
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
+	logger "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
 	"path"
+	"strings"
 
 	"google.golang.org/grpc/codes"
 	"knative.dev/pkg/apis"
@@ -146,20 +150,43 @@ type InterceptorGetter func(name string) (*triggersv1alpha1.ClusterInterceptor, 
 
 // ResolveToURL finds an Interceptor's URL.
 func ResolveToURL(getter InterceptorGetter, name string) (*apis.URL, error) {
+	fmt.Println("nammememe", name)
 	ic, err := getter(name)
 	if err != nil {
 		return nil, fmt.Errorf("url resolution failed for interceptor %s with: %w", name, err)
 	}
+	fmt.Println("address status is", ic.Status.Address)
 	if addr := ic.Status.Address; addr != nil {
+		fmt.Println("what is the url for address", addr.URL)
 		if addr.URL != nil {
 			return addr.URL, nil
 		}
 	}
+	fmt.Println("or else its coming herere")
 	// If the status does not have a URL, try to generate it from the Spec.
 	return ic.ResolveAddress()
 }
 
-func Execute(ctx context.Context, client *http.Client, req *triggersv1beta1.InterceptorRequest, url string) (*triggersv1beta1.InterceptorResponse, error) {
+func Execute(ctx context.Context, client *http.Client, req *triggersv1beta1.InterceptorRequest, url string,
+	certData []byte) (*triggersv1beta1.InterceptorResponse, error) {
+	fmt.Println("herer is the URL VALUE", url)
+
+	if strings.Contains(url, "https") {
+		fmt.Println("KKKKK")
+		certPool := x509.NewCertPool()
+		if ok := certPool.AppendCertsFromPEM(certData); !ok {
+			logger.Fatalf("unable to parse cert from %s", certData)
+		}
+
+		client = &http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{
+					RootCAs: certPool,
+				},
+			},
+		}
+	}
+
 	b, err := json.Marshal(req)
 	if err != nil {
 		return nil, err

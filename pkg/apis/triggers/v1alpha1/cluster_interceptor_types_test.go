@@ -62,12 +62,12 @@ func TestResolveAddress(t *testing.T) {
 						Name:      "my-svc",
 						Namespace: "default",
 						Path:      "blah",
-						Port:      ptr.Int32(8081),
+						Port:      ptr.Int32(8443),
 					},
 				},
 			},
 		},
-		want: "http://my-svc.default.svc:8081/blah",
+		want: "https://my-svc.default.svc:8443/blah",
 	}}
 
 	for _, tc := range tests {

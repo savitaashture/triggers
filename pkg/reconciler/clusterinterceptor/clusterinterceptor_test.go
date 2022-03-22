@@ -46,7 +46,7 @@ func TestReconcileKind(t *testing.T) {
 						Name:      "my-svc",
 						Namespace: "default",
 						Path:      "path",
-						Port:      ptr.Int32(80),
+						Port:      ptr.Int32(8443),
 					},
 				}},
 			Status: triggersv1.ClusterInterceptorStatus{},
@@ -61,15 +61,15 @@ func TestReconcileKind(t *testing.T) {
 						Name:      "my-svc",
 						Namespace: "default",
 						Path:      "path",
-						Port:      ptr.Int32(80),
+						Port:      ptr.Int32(8443),
 					},
 				}},
 			Status: triggersv1.ClusterInterceptorStatus{
 				AddressStatus: duckv1.AddressStatus{
 					Address: &duckv1.Addressable{
 						URL: &apis.URL{
-							Scheme: "http",
-							Host:   "my-svc.default.svc:80",
+							Scheme: "https",
+							Host:   "my-svc.default.svc:8443",
 							Path:   "path",
 						},
 					},
@@ -102,15 +102,15 @@ func TestReconcileKind(t *testing.T) {
 						Name:      "my-svc",
 						Namespace: "default",
 						Path:      "path",
-						Port:      ptr.Int32(80),
+						Port:      ptr.Int32(8443),
 					},
 				}},
 			Status: triggersv1.ClusterInterceptorStatus{
 				AddressStatus: duckv1.AddressStatus{
 					Address: &duckv1.Addressable{
 						URL: &apis.URL{
-							Scheme: "http",
-							Host:   "my-svc.default.svc:80",
+							Scheme: "https",
+							Host:   "my-svc.default.svc:8443",
 							Path:   "path",
 						},
 					},
