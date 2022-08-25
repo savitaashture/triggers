@@ -3,7 +3,9 @@ package server
 import (
 	"bytes"
 	"context"
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -32,7 +34,8 @@ const (
 	keyFile  = "/tmp/server-key.pem"
 	certFile = "/tmp/server-cert.pem"
 
-	decade = 100 * 365 * 24 * time.Hour
+	//decade = 100 * 365 * 24 * time.Hour
+	//decade = time.Minute
 )
 
 type Server struct {
@@ -48,12 +51,12 @@ func (is *Server) RegisterInterceptor(path string, interceptor triggersv1.Interc
 	is.interceptors[path] = interceptor
 }
 
-func NewWithCoreInterceptors(sg interceptors.SecretGetter, logger *zap.SugaredLogger) (*Server, error) {
+func NewWithCoreInterceptors(sg interceptors.SecretGetter, l *zap.SugaredLogger) (*Server, error) {
 	i := map[string]triggersv1.InterceptorInterface{
-		"bitbucket": bitbucket.NewInterceptor(sg),
-		"cel":       cel.NewInterceptor(sg),
-		"github":    github.NewInterceptor(sg),
-		"gitlab":    gitlab.NewInterceptor(sg),
+		"bitbucket": bitbucket.NewInterceptor(sg, l),
+		"cel":       cel.NewInterceptor(sg, l),
+		"github":    github.NewInterceptor(sg, l),
+		"gitlab":    gitlab.NewInterceptor(sg, l),
 	}
 
 	for k, v := range i {
@@ -62,7 +65,7 @@ func NewWithCoreInterceptors(sg interceptors.SecretGetter, logger *zap.SugaredLo
 		}
 	}
 	s := Server{
-		Logger:       logger,
+		Logger:       l,
 		interceptors: i,
 	}
 	return &s, nil
@@ -149,7 +152,8 @@ func (is *Server) ExecuteInterceptor(r *http.Request) ([]byte, error) {
 	return respBytes, nil
 }
 
-func CreateCerts(ctx context.Context, coreV1Interface corev1.CoreV1Interface, logger *zap.SugaredLogger) (string, string, []byte, error) {
+func CreateCerts(ctx context.Context, coreV1Interface corev1.CoreV1Interface, logger *zap.SugaredLogger, decade time.Duration) (string, string, []byte, []byte, []byte, error) {
+	fmt.Println("what is decade value herererree", decade)
 	interceptorSvcName := os.Getenv("INTERCEPTOR_TLS_SVC_NAME")
 	interceptorSecretName := os.Getenv("INTERCEPTOR_TLS_SECRET_NAME")
 	namespace := os.Getenv("SYSTEM_NAMESPACE")
@@ -161,10 +165,10 @@ func CreateCerts(ctx context.Context, coreV1Interface corev1.CoreV1Interface, lo
 			// that's responsible for install/updates.  We simply populate the
 			// secret information.
 			logger.Infof("secret %s is missing", interceptorSecretName)
-			return "", "", []byte{}, err
+			return "", "", []byte{}, []byte{}, []byte{}, err
 		}
 		logger.Infof("error accessing certificate secret %q: %v", interceptorSecretName, err)
-		return "", "", []byte{}, err
+		return "", "", []byte{}, []byte{}, []byte{}, err
 	}
 
 	var (
@@ -193,7 +197,7 @@ func CreateCerts(ctx context.Context, coreV1Interface corev1.CoreV1Interface, lo
 		serverKey, serverCert, caCert, err = certresources.CreateCerts(ctx, interceptorSvcName, namespace, time.Now().Add(decade))
 		if err != nil {
 			logger.Errorf("failed to create certs : %v", err)
-			return "", "", []byte{}, err
+			return "", "", []byte{}, []byte{}, []byte{}, err
 		}
 
 		secret.Data = map[string][]byte{
@@ -203,36 +207,89 @@ func CreateCerts(ctx context.Context, coreV1Interface corev1.CoreV1Interface, lo
 		}
 		if _, err = coreV1Interface.Secrets(namespace).Update(ctx, secret, metav1.UpdateOptions{}); err != nil {
 			logger.Errorf("failed to update secret : %v", err)
-			return "", "", []byte{}, err
+			return "", "", []byte{}, []byte{}, []byte{}, err
 		}
 	}
 
 	// write serverKey to file so that it can be passed while running https server.
 	if err = ioutil.WriteFile(keyFile, serverKey, 0600); err != nil {
 		logger.Errorf("failed to write serverKey file %v", err)
-		return "", "", []byte{}, err
+		return "", "", []byte{}, []byte{}, []byte{}, err
 	}
 
 	// write serverCert to file so that it can be passed while running https server.
 	if err = ioutil.WriteFile(certFile, serverCert, 0600); err != nil {
 		logger.Errorf("failed to write serverCert file %v", err)
-		return "", "", []byte{}, err
+		return "", "", []byte{}, []byte{}, []byte{}, err
 	}
-	return keyFile, certFile, caCert, nil
+	fmt.Println("what is serverKey content", string(serverKey), "servercert", string(serverCert), "cacert", string(caCert))
+	return keyFile, certFile, serverKey, serverCert, caCert, nil
 }
 
 // UpdateCRDWithCaCert updates clusterinterceptor crd caBundle with caCert
 func (is *Server) UpdateCRDWithCaCert(ctx context.Context, triggersV1Alpha1 triggersv1alpha1.TriggersV1alpha1Interface,
-	ci []*v1alpha1.ClusterInterceptor, caCert []byte) error {
+	ci []*v1alpha1.ClusterInterceptor, caCert []byte, certIsInvalid bool) error {
 	for i := range ci {
 		if _, ok := is.interceptors[ci[i].Name]; ok {
+			if certIsInvalid {
+				fmt.Println("its comingngngng")
+				ci[i].Spec.ClientConfig.CaBundle = []byte{}
+				if _, err := triggersV1Alpha1.ClusterInterceptors().Update(ctx, ci[i], metav1.UpdateOptions{}); err != nil {
+					return err
+				}
+				fmt.Println("does update to empty is success")
+			}
 			if bytes.Equal(ci[i].Spec.ClientConfig.CaBundle, []byte{}) {
 				ci[i].Spec.ClientConfig.CaBundle = caCert
 				if _, err := triggersV1Alpha1.ClusterInterceptors().Update(ctx, ci[i], metav1.UpdateOptions{}); err != nil {
 					return err
 				}
+				fmt.Println("does update with cert is success")
 			}
 		}
 	}
 	return nil
+}
+
+func checkCertValidity(serverCert, caCert []byte, logger *zap.SugaredLogger) {
+	ticker := time.NewTicker(time.Minute)
+	quit := make(chan struct{})
+	var (
+		cert *x509.Certificate
+		err  error
+	)
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				// Check the expiration date of the certificate to see if it needs to be updated
+				roots := x509.NewCertPool()
+				ok := roots.AppendCertsFromPEM(caCert)
+				if !ok {
+					logger.Error("failed to parse root certificate")
+				}
+				block, _ := pem.Decode(serverCert)
+				if block == nil {
+					logger.Error("failed to parse certificate PEM")
+				} else {
+					cert, err = x509.ParseCertificate(block.Bytes)
+					if err != nil {
+						logger.Errorf("failed to parse certificate: %v", err.Error())
+					}
+				}
+
+				opts := x509.VerifyOptions{
+					Roots: roots,
+				}
+
+				if _, err := cert.Verify(opts); err != nil {
+					logger.Errorf("failed to verify certificate: %v", err.Error())
+
+				}
+			case <-quit:
+				ticker.Stop()
+				return
+			}
+		}
+	}()
 }

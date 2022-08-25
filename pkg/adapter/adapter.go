@@ -112,32 +112,75 @@ func (s *sinker) getHTTPClient() (*http.Client, error) {
 	)
 
 	certPool := x509.NewCertPool()
-	err := wait.PollImmediate(interval, timeout, func() (bool, error) {
-		clusterInterceptorList, err := clusterinterceptorsinformer.Get(s.injCtx).Lister().List(labels.NewSelector())
-		if err != nil {
-			return false, err
-		}
-
-		for i := range clusterInterceptorList {
-			if v, k := clusterInterceptorList[i].Labels["server/type"]; k && v == "https" {
-				httpsCILen++
-				if !bytes.Equal(clusterInterceptorList[i].Spec.ClientConfig.CaBundle, []byte{}) {
-					caCert = clusterInterceptorList[i].Spec.ClientConfig.CaBundle
-					if ok := certPool.AppendCertsFromPEM(caCert); !ok {
-						return false, fmt.Errorf("unable to parse cert from %s", caCert)
+	ticker := time.NewTicker(time.Second)
+	quit := make(chan struct{})
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				err := wait.PollImmediate(interval, timeout, func() (bool, error) {
+					clusterInterceptorList, err := clusterinterceptorsinformer.Get(s.injCtx).Lister().List(labels.NewSelector())
+					if err != nil {
+						return false, err
 					}
-					count++
+
+					for i := range clusterInterceptorList {
+						if v, k := clusterInterceptorList[i].Labels["server/type"]; k && v == "https" {
+							httpsCILen++
+							if !bytes.Equal(clusterInterceptorList[i].Spec.ClientConfig.CaBundle, []byte{}) {
+								fmt.Println("its coming and updating")
+								caCert = clusterInterceptorList[i].Spec.ClientConfig.CaBundle
+								if ok := certPool.AppendCertsFromPEM(caCert); !ok {
+									return false, fmt.Errorf("unable to parse cert from %s", caCert)
+								}
+								count++
+							}
+						}
+					}
+					fmt.Println("Are there any differences here", httpsCILen, "count as well", count)
+					if httpsCILen != 0 && httpsCILen == count {
+						return true, nil
+					}
+					return false, fmt.Errorf("empty caBundle in clusterInterceptor spec")
+				})
+				if err != nil {
+					s.Logger.Errorf("Timed out waiting on CaBundle to available for clusterInterceptor: %v", err)
+					//return &http.Client{}, fmt.Errorf("Timed out waiting on CaBundle to available for clusterInterceptor: %v", err)
+					return
 				}
+			case <-quit:
+				ticker.Stop()
+				return
 			}
 		}
-		if httpsCILen != 0 && httpsCILen == count {
-			return true, nil
-		}
-		return false, fmt.Errorf("empty caBundle in clusterInterceptor spec")
-	})
-	if err != nil {
-		return &http.Client{}, fmt.Errorf("Timed out waiting on CaBundle to available for clusterInterceptor: %v", err)
-	}
+	}()
+	//err := wait.PollImmediate(interval, timeout, func() (bool, error) {
+	//	clusterInterceptorList, err := clusterinterceptorsinformer.Get(s.injCtx).Lister().List(labels.NewSelector())
+	//	if err != nil {
+	//		return false, err
+	//	}
+	//
+	//	for i := range clusterInterceptorList {
+	//		if v, k := clusterInterceptorList[i].Labels["server/type"]; k && v == "https" {
+	//			httpsCILen++
+	//			if !bytes.Equal(clusterInterceptorList[i].Spec.ClientConfig.CaBundle, []byte{}) {
+	//				caCert = clusterInterceptorList[i].Spec.ClientConfig.CaBundle
+	//				if ok := certPool.AppendCertsFromPEM(caCert); !ok {
+	//					return false, fmt.Errorf("unable to parse cert from %s", caCert)
+	//				}
+	//				count++
+	//			}
+	//		}
+	//	}
+	//	fmt.Println("Are there any differences here", httpsCILen, "count as well", count)
+	//	if httpsCILen != 0 && httpsCILen == count {
+	//		return true, nil
+	//	}
+	//	return false, fmt.Errorf("empty caBundle in clusterInterceptor spec")
+	//})
+	//if err != nil {
+	//	return &http.Client{}, fmt.Errorf("Timed out waiting on CaBundle to available for clusterInterceptor: %v", err)
+	//}
 	tlsConfig = &tls.Config{
 		RootCAs:    certPool,
 		MinVersion: tls.VersionTLS13, // Added MinVersion to avoid  G402: TLS MinVersion too low. (gosec)
@@ -200,11 +243,10 @@ func (s *sinker) Start(ctx context.Context) error {
 	})
 
 	srv := &http.Server{
-		Addr:              fmt.Sprintf(":%s", s.Args.Port),
-		ReadHeaderTimeout: s.Args.ELReadTimeOut * time.Second,
-		ReadTimeout:       s.Args.ELReadTimeOut * time.Second,
-		WriteTimeout:      s.Args.ELWriteTimeOut * time.Second,
-		IdleTimeout:       s.Args.ELIdleTimeOut * time.Second,
+		Addr:         fmt.Sprintf(":%s", s.Args.Port),
+		ReadTimeout:  s.Args.ELReadTimeOut * time.Second,
+		WriteTimeout: s.Args.ELWriteTimeOut * time.Second,
+		IdleTimeout:  s.Args.ELIdleTimeOut * time.Second,
 		Handler: http.TimeoutHandler(mux,
 			s.Args.ELTimeOutHandler*time.Second, "EventListener Timeout!\n"),
 	}
