@@ -168,6 +168,17 @@ type GitHubInterceptor struct {
 	// +listType=atomic
 	EventTypes      []string              `json:"eventTypes,omitempty"`
 	AddChangedFiles GithubAddChangedFiles `json:"addChangedFiles,omitempty"`
+	GithubOwners    GithubOwners          `json:"githubOwners,omitempty"`
+}
+
+type GithubOwners struct {
+	Enabled bool `json:"enabled,omitempty"`
+	// This param/variable is required for private repositories or when either EnableOrgMemberCheck, EnableRepoMemberCheck are set to true
+	PersonalAccessToken *SecretRef `json:"personalAccessToken,omitempty"`
+	// Set this as true to allow org members to submit or comment on PR to proceed
+	EnableOrgMemberCheck bool `json:"enableOrgMemberCheck,omitempty"`
+	// Set this as true to allow repo members to submit or comment on PR to proceed
+	EnableRepoMemberCheck bool `json:"enableRepoMemberCheck,omitempty"`
 }
 
 type GithubAddChangedFiles struct {
