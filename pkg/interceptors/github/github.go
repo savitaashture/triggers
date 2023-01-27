@@ -45,8 +45,7 @@ const (
 	OKToTestCommentRegexp                = `(^|\n)\/ok-to-test(\r\n|\r|\n|$)`
 )
 
-// With Owners file validation, pull request should be blocked from triggering the pipeline run when the PR owner is not part of the owners file and owner has not left a `/ok-to-test` comment on the PR
-// For this functionality the targeted event types are `pull_request` and `issue_comment`
+// In a pull request, these are the only two events that should trigger a PipelineRun/TaskRun
 var ownersEventTypes = []string{"pull_request", "issue_comment"}
 
 // ErrInvalidContentType is returned when the content-type is not a JSON body.
@@ -207,8 +206,8 @@ func (w *Interceptor) Process(ctx context.Context, r *triggersv1.InterceptorRequ
 		if ghToken == "" && (p.GithubOwners.EnableOrgMemberCheck || p.GithubOwners.EnableRepoMemberCheck) {
 			return interceptors.Fail(codes.FailedPrecondition, "enableOrgMemberCheck or enableRepoMemberCheck is enabled but no personalAccessToken was supplied")
 		}
-		// The X-Github-Enterprise-Host header only exists when the webhook comes from a github enterprise server.
-		// So if the header does not exist, the enterpriseBaseURL is an empty string. If the string is empty, it is regular hosted GitHub and if it has a value, it is enterprise
+		// The X-Github-Enterprise-Host header only exists when the webhook comes from a github enterprise
+		// server and is left empty for regular hosted Github
 		enterpriseBaseURL := headers.Get("X-Github-Enterprise-Host")
 		client, err := makeClient(ctx, enterpriseBaseURL, ghToken)
 		if err != nil {
