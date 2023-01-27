@@ -1,6 +1,6 @@
 ## GitHub Owner EventListener
 
-Creates an EventListener that listens for GitHub webhook events. To use the Github `interceptor` with owners the `eventTypes` field should minimally contain `pull_request` and `issue_comment`. To enable this feature set `enable` to true for `githubOwners` parameter
+Creates an EventListener that listens for GitHub webhook `pull_request` or `issue_comment` event types. It will continue processing if the user making the request is listed in the [`owners` file](https://www.kubernetes.dev/docs/guide/owners/) and will halt processing if not
 
 ### Try it out locally:
 

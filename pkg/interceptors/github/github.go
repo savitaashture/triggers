@@ -45,7 +45,9 @@ const (
 	OKToTestCommentRegexp                = `(^|\n)\/ok-to-test(\r\n|\r|\n|$)`
 )
 
-// With Owners file validation, pull request should be blocked from triggering the pipeline run when the PR owner is not part of the owners file and owner has not left a `/ok-to-test` comment on the PR
+// With Owner validation, pull request should be blocked from triggering the PipelineRun/TaskRun when
+// the PR owner is not part of the owners file or org/repo owner and owner has not left a `/ok-to-test`
+// comment on the PR
 // For this functionality the targeted event types are `pull_request` and `issue_comment`
 var ownersEventTypes = []string{"pull_request", "issue_comment"}
 
