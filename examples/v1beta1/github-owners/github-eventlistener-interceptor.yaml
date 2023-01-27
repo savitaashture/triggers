@@ -15,7 +15,7 @@ spec:
                 secretName: github-secret
                 secretKey: secretToken
             - name: "eventTypes"
-              # Owners validation requires (at minimum, any additional are ignored) the `pull_request` and `issue_comment` GitHub event types
+              # Owners validation requires (at a minimum) the `pull_request` and `issue_comment` GitHub event types
               value: ["pull_request", "issue_comment"]
             - name: "githubOwners"
               value:

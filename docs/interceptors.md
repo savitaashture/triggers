@@ -259,13 +259,13 @@ For more information around adding changed files, see the following examples
 
 #### Owners validation for pull requests
 
-The GitHub `Interceptor` supports the ability to halt processing on a pull request if the user is not listed within an [`owners` file](https://www.kubernetes.dev/docs/guide/owners/) located at the root of the repository and/or the is not an organization or repository member or owner. This feature can be used to prevent unnecessary execution of a PipelineRun or TaskRun. The GitHub `Interceptor` also supports the ability to kick off a PipelineRun/TaskRun from a comment on a pull request from a user that meets the criteria stated above. The comment must contain `/ok-to-test`
+The GitHub `Interceptor` supports the ability to halt processing on a pull request if the user is not listed in the [owners](https://www.kubernetes.dev/docs/guide/owners/) file or is not a repository/organization member/owner. This feature can be used to prevent unnecessary execution of a PipelineRun or TaskRun. The GitHub `Interceptor` also supports the ability to trigger a PipelineRun/TaskRun through a comment that contains `/ok-to-test` on a pull request by an owner. 
 
 This feature will also work against private GitHub repositories by supplying a [GitHub personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) in the `personalAccessToken` field.
 
-> NOTE: Owners validation requires (at minimum, any additional are ignored) the `pull_request` and `issue_comment` GitHub event types
+> NOTE: Owners validation requires (at a minimum) the `pull_request` and `issue_comment` GitHub event types.
 
-To use a GitHub `Interceptor` as a GitHub owners validator, do the following:
+To use the GitHub `Interceptor` as a GitHub owners validator, do the following:
 
 1. Create a secret string value.
 2. Configure the `GitHub` webhook with that value.
@@ -273,9 +273,7 @@ To use a GitHub `Interceptor` as a GitHub owners validator, do the following:
 4. Pass the Kubernetes secret as a reference to your GitHub `Interceptor`.
 5. Create an owners file and add the list of approvers into the approvers section.
 
-To use a Github `interceptor` with owners the `eventTypes` field should minimally contain `pull_request` and `issue_comment`
-
-Below is an example GitHub `Interceptor` using owners:
+Below is an example GitHub `Interceptor` using owners validation:
 
 ```yaml
  triggers:
@@ -291,7 +289,7 @@ Below is an example GitHub `Interceptor` using owners:
                 secretName: github-secret
                 secretKey: secretToken
             - name: "eventTypes"
-              # Owners validation requires (at minimum, any additional are ignored) the `pull_request` and `issue_comment` GitHub event types
+              # Owners validation requires (at a minimum) the `pull_request` and `issue_comment` GitHub event types
               value: ["pull_request", "issue_comment"]
             - name: "githubOwners"
               value: 

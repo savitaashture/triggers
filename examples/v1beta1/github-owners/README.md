@@ -1,6 +1,6 @@
 ## GitHub Owner EventListener
 
-Creates an EventListener that listens for GitHub webhook `pull_request` or `issue_comment` event types. It will continue processing if the user making the request is listed in the [`owners` file](https://www.kubernetes.dev/docs/guide/owners/) and will halt processing if not
+Creates an EventListener that listens for `pull_request` or `issue_comment` GitHub webhook events and will only continue processing if the user making the request is listed in the [`owners` file](https://www.kubernetes.dev/docs/guide/owners/)
 
 ### Try it out locally:
 
