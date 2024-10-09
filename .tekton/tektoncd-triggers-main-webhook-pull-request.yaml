@@ -33,27 +33,23 @@ spec:
     value: 5d
   - name: dockerfile
     value: openshift/dockerfiles/webhook.Dockerfile
-  - name: build-source-image
-    value: "true"
-  - name: hermetic
-    value: "true"
   - name: prefetch-input
     value: |
       {"type": "rpm", "path": "openshift/rpms"}
   pipelineRef:
-    name: docker-build
+    name: docker-build-ta
   workspaces:
-  - name: workspace
-    volumeClaimTemplate:
-      metadata:
-        creationTimestamp: null
-      spec:
-        accessModes:
-        - ReadWriteOnce
-        resources:
-          requests:
-            storage: 1Gi
-      status: {}
+#  - name: workspace
+#    volumeClaimTemplate:
+#      metadata:
+#        creationTimestamp: null
+#      spec:
+#        accessModes:
+#        - ReadWriteOnce
+#        resources:
+#          requests:
+#            storage: 1Gi
+#      status: {}
   - name: git-auth
     secret:
       secretName: '{{ git_auth_secret }}'
